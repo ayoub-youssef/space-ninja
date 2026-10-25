@@ -44,6 +44,10 @@ namespace hub {
     let final_boss = false
     let lives_at_end = 0
     let run_sent = false
+    // The last projection sent to the Hub. The chip only needs a message when
+    // the run's worth actually changes - a score chunk, a kill - not every
+    // frame.
+    let sent_units = -1
 
     // The Hub's authoritative summary, if it answers in time.
     let summary_text = ""
@@ -253,6 +257,25 @@ namespace hub {
         if (score < JOKE_SCORE) last_score = score
     }
 
+    // The same rule the Hub's server uses, for the live chip. The final
+    // boss's own 10 units and the life bonus only land when the run ends, so
+    // they are not part of this projection.
+    function projected_units(): number {
+        const score = last_score > 0 ? last_score : 0
+        return Math.idiv(score, SCORE_STEP) + duck_kills + monkey_kills * 2
+    }
+
+    function report_progress() {
+        if (startGame != -1 || gameOver != 0) return
+        const units = projected_units()
+        if (units == sent_units) return
+        sent_units = units
+        const score = last_score > 0 ? last_score : 0
+        send("{\"v\":1,\"action\":\"progress\",\"run\":{\"score\":" + score +
+            ",\"duck\":" + duck_kills + ",\"monkey\":" + monkey_kills +
+            ",\"final_boss\":0,\"lives\":0}}")
+    }
+
     export function boot() {
         control.simmessages.onReceived(CHANNEL, on_message)
         send_ready()
@@ -268,6 +291,7 @@ namespace hub {
         game.onUpdate(function () {
             track_bosses()
             track_score()
+            report_progress()
         })
     }
 }

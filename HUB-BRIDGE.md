@@ -90,11 +90,12 @@ This folder already contains the compiled web build, so nothing has to be
 rebuilt to go live: `assets/js/binary.js` was built from this source with the
 arcade target, and `assets/js/custom.js` is the bridge.
 
-1. Copy these four files over the same paths in
+1. Copy these five files over the same paths in
    <https://github.com/ayoub-youssef/space-ninja>:
    - `hub.ts`
    - `pxt.json`
    - `assets/js/custom.js`
+   - `assets/js/loader.js`
    - `assets/js/binary.js`
 2. Commit and push.
 3. Hard-refresh <https://ayoub-youssef.github.io/space-ninja/> once. The page's
@@ -107,6 +108,12 @@ commit, and create a release. `pxt.json`'s `disableTargetTemplateFiles` keeps
 
 The Hub passes `?hub_origin=` on the URL. `custom.js` only accepts messages
 from that origin, so framing the game elsewhere leaves the bridge inert.
+
+The Hub also passes `?hideconsole=1` on a mouse/keyboard device. `loader.js`
+turns that into the simulator's own `hideSimButtons=1&noExtraPadding=1`, so the
+framed game is the 4:3 screen alone, with no console chrome. A touch device
+keeps the console, because the on-screen D-pad and A/B buttons are the only
+controls there. Keyboard: arrows or WASD to move, Space for A, Enter for B.
 
 ## Testing without a rebuild
 

@@ -50,6 +50,9 @@
             to_hub({ source: GAME_SOURCE, type: 'ready' });
         } else if (data.action === 'run') {
             to_hub({ source: GAME_SOURCE, type: 'run', run: data.run });
+        } else if (data.action === 'progress') {
+            // A live projection for the Hub's chip: the run's worth so far.
+            to_hub({ source: GAME_SOURCE, type: 'progress', run: data.run });
         } else if (data.action === 'summary_seen') {
             // The in-game summary has been dismissed, so the Hub can show its
             // own without covering it.
