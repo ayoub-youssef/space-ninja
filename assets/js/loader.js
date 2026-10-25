@@ -28,6 +28,19 @@ function makeCodeRun(options) {
             code.replace(/^\/\/\s+meta=([^\n]+)\n/m, function (m, metasrc) {
                 meta = JSON.parse(metasrc);
             })
+            // The Hub frames this page and asks for the game alone, without
+            // the simulator's on-screen console. The simulator reads that as
+            // `hideSimButtons` on its own URL, which lives in the build's meta
+            // line, so the flag is appended here rather than baked into the
+            // binary. A direct visit keeps the console (and its touch
+            // controls); only the embedding page opts out.
+            try {
+                var pageParams = new URLSearchParams(window.location.search);
+                if (pageParams.get('hideconsole') === '1') {
+                    meta.simUrl += (meta.simUrl.indexOf('?') >= 0 ? '&' : '?') +
+                        'hideSimButtons=1&noExtraPadding=1';
+                }
+            } catch (e) { }
             var vel = document.getElementById("version");
             if (meta.version && meta.repo && vel) {
                 var ap = document.createElement("a");
