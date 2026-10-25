@@ -228,6 +228,10 @@ namespace hub {
                 pause(100)
                 waited += 100
             }
+            // The dialog is about to block. Saying so lets the Hub hold its
+            // own panel back until this one is dismissed, however long the
+            // player takes to read it.
+            send("{\"v\":1,\"action\":\"summary_shown\"}")
             game.showLongText(summary_received ? summary_text : local_summary(),
                 DialogLayout.Full)
             // The dialog blocks until it is dismissed. Saying so lets the Hub

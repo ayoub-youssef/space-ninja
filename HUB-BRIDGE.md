@@ -73,16 +73,23 @@ JSON before handing it to the handler.
 
 ```text
 game → hub   {"v":1,"action":"ready"}
+             {"v":1,"action":"progress","run":{"score":…,"duck":…,"monkey":…,"final_boss":0|1,"lives":…}}
              {"v":1,"action":"run","run":{"score":…,"duck":…,"monkey":…,"final_boss":0|1,"lives":…}}
+             {"v":1,"action":"summary_shown"}
              {"v":1,"action":"summary_seen"}
 
 hub → game   HUB1|SESSION|earning|callsign
              HUB1|SUMMARY|data_awarded|earning|line~line~line
 ```
 
-`summary_seen` is sent once the game's own fullscreen summary has been
-dismissed, so the Hub puts its detailed panel up afterwards instead of covering
-the game's dialog. The Hub waits 15 s for it and then shows the panel anyway.
+`progress` is the live chip's projection; it is sent only when the run's
+projected unit count changes (a 100K step, a kill), not every frame. The
+server still prices the final `run`.
+
+`summary_shown` is sent just before the game's fullscreen long text opens, so
+the Hub holds its own panel back for as long as the player reads. `summary_seen`
+is sent when that dialog is dismissed, and the Hub then shows its detailed
+panel. If neither ever arrives, the Hub falls back to its panel after 15 s.
 
 ## Publishing
 
