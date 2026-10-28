@@ -1,14 +1,33 @@
 name: MakeCode Arcade Release
 
+# Web build only.
+#
+# These projects carry a Hub Data bridge (hub.ts), which uses
+# control.simmessages - a web-target API with no hardware shim. A physical
+# Arcade build cannot compile it: the shim lookup fails, and it takes
+# pxt_modules/base/controlmessage.ts and keymap._setSystemKeys with it.
+#
+# The hardware steps this workflow used to run were each marked
+# continue-on-error, so they failed quietly, produced no .uf2, and then
+# `cat binary-*.uf2` took the whole job down with "No such file or directory".
+# Keeping them would mean a red release every time for a build that cannot
+# work while the bridge is present.
+#
+# What is left is the build that matters: `pxt build --cloud` compiles the web
+# game the GitHub Pages site serves. The editor's "create release" is what
+# writes that build into assets/; this job is the check that the source still
+# compiles.
 on:
   release:
     types:
       - created
+  workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Required for gh release upload
+      contents: read
 
     steps:
       - uses: actions/checkout@v5
@@ -27,43 +46,3 @@ jobs:
           pxt clean
           pxt install
           pxt build --cloud
-
-      - name: build D51
-        continue-on-error: true
-        run: |
-          pxt clean
-          pxt install --hw samd51
-          pxt build --hw samd51 --cloud
-          cp ./built/binary.uf2 binary-d51.uf2
-
-      - name: build F4
-        continue-on-error: true
-        run: |
-          pxt clean
-          pxt install --hw stm32f401
-          pxt build --hw stm32f401 --cloud
-          cp ./built/binary.uf2 binary-f4.uf2
-
-      - name: build P0
-        continue-on-error: true
-        run: |
-          pxt clean
-          pxt install --hw rpi
-          pxt build --hw rpi --cloud
-          cp ./built/binary.uf2 binary-p0.uf2
-
-      - name: bundle all
-        run: |
-          cat binary-*.uf2 > ./built/arcade.uf2
-
-      - name: Upload Release Assets
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          TAG_NAME=${GITHUB_REF#refs/tags/}
-          gh release upload $TAG_NAME \
-            built/arcade.uf2 \
-            binary-d51.uf2 \
-            binary-f4.uf2 \
-            binary-p0.uf2 \
-            --clobber
